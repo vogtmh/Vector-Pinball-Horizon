@@ -634,6 +634,45 @@ public class Field implements ContactListener {
     }
 
     /**
+     * Sets left flippers to an analog engagement level (0.0 = released, 1.0 = fully engaged).
+     * Triggers flipper activation callbacks when crossing the engagement threshold.
+     */
+    public void setLeftFlippersEngageLevel(float level) {
+        setFlippersEngageLevel(layout.getLeftFlipperElements(), level);
+    }
+
+    public void setRightFlippersEngageLevel(float level) {
+        setFlippersEngageLevel(layout.getRightFlipperElements(), level);
+    }
+
+    private static final float ANALOG_ENGAGE_THRESHOLD = 0.15f;
+
+    private void setFlippersEngageLevel(List<FlipperElement> flippers, float level) {
+        boolean engaging = level >= ANALOG_ENGAGE_THRESHOLD;
+        activatedFlippers.clear();
+        boolean allFlippersPreviouslyActive = true;
+        int fsize = flippers.size();
+        for (int i = 0; i < fsize; i++) {
+            FlipperElement flipper = flippers.get(i);
+            if (!flipper.isFlipperEngaged()) {
+                allFlippersPreviouslyActive = false;
+                if (engaging) {
+                    activatedFlippers.add(flipper);
+                }
+            }
+            flipper.setFlipperEngageLevel(level);
+        }
+
+        if (engaging && !allFlippersPreviouslyActive) {
+            audioPlayer.playFlipper();
+            for (FieldElement element : this.getFieldElementsArray()) {
+                element.flippersActivated(this, activatedFlippers);
+            }
+            getDelegate().flippersActivated(this, activatedFlippers);
+        }
+    }
+
+    /**
      * Ends a game in progress by removing all balls in play, calling setGameInProgress(false)
      * on the GameState, and setting a "Game Over" message for display by the score view.
      */

@@ -505,7 +505,19 @@ public class BouncyActivity extends Activity {
                 return true;
             }
         }
+        // During gameplay, handle flipper keys at the Activity level so they work
+        // regardless of which view has focus.
+        if (fieldViewManager.handleKeyDown(keyCode, event)) {
+            return true;
+        }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (fieldViewManager.handleKeyUp(keyCode, event)) {
+            return true;
+        }
+        return super.onKeyUp(keyCode, event);
     }
 
     // Track trigger state for menu table switching (edge detection).
@@ -682,6 +694,7 @@ public class BouncyActivity extends Activity {
     void updateFromPreferences() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         fieldViewManager.setIndependentFlippers(prefs.getBoolean("independentFlippers", true));
+        fieldViewManager.setAnalogTriggers(prefs.getBoolean("analogTriggers", true));
         scoreView.setShowFps(prefs.getBoolean("showFPS", false));
 
         // If switching line width or OpenGL/Canvas, reset frame rate manager because maximum

@@ -61,6 +61,7 @@ public class BouncyPreferences extends PreferenceActivity {
         assignSwitchColor("music",               Color.rgb(  0, 170, 102)); // Teal (T6/T7)
         assignSwitchColor("haptic",              Color.rgb(255, 153,   0)); // Orange (T6)
         assignSwitchColor("independentFlippers", Color.rgb( 57, 147, 221)); // Blue (T8)
+        assignSwitchColor("analogTriggers",       Color.rgb(255, 204,   0)); // Yellow
         assignSwitchColor("zoom",                Color.rgb(170,  34, 204)); // Purple (T6)
         assignSwitchColor("showBallTrails",      Color.rgb(  0, 224, 224)); // Cyan (T1-T3)
         assignSwitchColor("showScoreAnimations", Color.rgb(204,   0,   0)); // Red (T5)

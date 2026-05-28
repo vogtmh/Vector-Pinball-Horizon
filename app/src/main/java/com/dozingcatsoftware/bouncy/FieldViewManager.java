@@ -34,6 +34,7 @@ public class FieldViewManager {
     }
 
     boolean independentFlippers;
+    boolean analogTriggers = true;
     float maxZoom = 1.0f;
     boolean landscapeAutoZoom = false;
     static final float LANDSCAPE_FILL_FRACTION = 0.9f;
@@ -54,6 +55,10 @@ public class FieldViewManager {
 
     public void setIndependentFlippers(boolean value) {
         independentFlippers = value;
+    }
+
+    public void setAnalogTriggers(boolean value) {
+        analogTriggers = value;
     }
 
     // Line width can be specified directly, otherwise it's a fraction of the smaller width or
@@ -336,9 +341,9 @@ public class FieldViewManager {
                 if (!field.getGameState().isGameInProgress() || field.getGameState().isPaused()) {
                     return false;
                 }
-                boolean isActionKey = updateFlippersForKeyCode(keyCode, true);
-                if (isActionKey) launchBallIfNeeded();
-                return isActionKey;
+                boolean isFlipperKey = updateFlippersForKeyCode(keyCode, true);
+                if (isFlipperKey) launchBallIfNeeded();
+                return isFlipperKey;
             }
         }
         return false;
@@ -373,10 +378,13 @@ public class FieldViewManager {
         return false;
     }
 
-    // Analog trigger threshold: values above this are treated as "pressed".
-    private static final float TRIGGER_THRESHOLD = 0.5f;
+    // Analog trigger: small dead zone to avoid noise, values passed proportionally to flippers.
+    private static final float TRIGGER_DEAD_ZONE = 0.05f;
+    private float lastLeftTrigger = 0f;
+    private float lastRightTrigger = 0f;
     private boolean leftTriggerPressed = false;
     private boolean rightTriggerPressed = false;
+    private static final float TRIGGER_LAUNCH_THRESHOLD = 0.5f;
 
     public boolean handleGenericMotionEvent(MotionEvent event) {
         if ((event.getSource() & android.view.InputDevice.SOURCE_JOYSTICK) == 0) {
@@ -387,18 +395,36 @@ public class FieldViewManager {
                 return false;
             }
             boolean handled = false;
-            boolean lt = event.getAxisValue(MotionEvent.AXIS_LTRIGGER) >= TRIGGER_THRESHOLD;
-            if (lt != leftTriggerPressed) {
-                leftTriggerPressed = lt;
-                field.setLeftFlippersEngaged(lt);
-                if (lt) launchBallIfNeeded();
+
+            float ltRaw = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
+            float lt = ltRaw < TRIGGER_DEAD_ZONE ? 0f : ltRaw;
+            if (lt != lastLeftTrigger) {
+                lastLeftTrigger = lt;
+                if (analogTriggers) {
+                    field.setLeftFlippersEngageLevel(lt);
+                } else {
+                    boolean ltNow = lt >= TRIGGER_LAUNCH_THRESHOLD;
+                    if (ltNow != leftTriggerPressed) {
+                        field.setLeftFlippersEngaged(ltNow);
+                    }
+                }
+                leftTriggerPressed = lt >= TRIGGER_LAUNCH_THRESHOLD;
                 handled = true;
             }
-            boolean rt = event.getAxisValue(MotionEvent.AXIS_RTRIGGER) >= TRIGGER_THRESHOLD;
-            if (rt != rightTriggerPressed) {
-                rightTriggerPressed = rt;
-                field.setRightFlippersEngaged(rt);
-                if (rt) launchBallIfNeeded();
+
+            float rtRaw = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+            float rt = rtRaw < TRIGGER_DEAD_ZONE ? 0f : rtRaw;
+            if (rt != lastRightTrigger) {
+                lastRightTrigger = rt;
+                if (analogTriggers) {
+                    field.setRightFlippersEngageLevel(rt);
+                } else {
+                    boolean rtNow = rt >= TRIGGER_LAUNCH_THRESHOLD;
+                    if (rtNow != rightTriggerPressed) {
+                        field.setRightFlippersEngaged(rtNow);
+                    }
+                }
+                rightTriggerPressed = rt >= TRIGGER_LAUNCH_THRESHOLD;
                 handled = true;
             }
             return handled;

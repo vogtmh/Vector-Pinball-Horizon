@@ -54,6 +54,7 @@ public class FlipperElement extends FieldElement {
     float upspeed, downspeed;
     float flipperDownAngle, flipperUpAngle;
     float cx, cy;  // Center of revolution.
+    float fullAngleRange; // Full rotation range (upperAngle - lowerAngle from jointDef).
 
     @Override
     public void finishCreateElement(Map<String, ?> params, FieldElementCollection collection) {
@@ -117,6 +118,7 @@ public class FlipperElement extends FieldElement {
         jointDef.maxMotorTorque = 1000f;
 
         this.joint = (RevoluteJoint) world.createJoint(jointDef);
+        this.fullAngleRange = jointDef.upperAngle - jointDef.lowerAngle;
 
         flipperBodySet = Collections.singletonList(flipperBody);
         this.setEffectiveMotorSpeed(-this.downspeed); // Force flipper to bottom when field is first created.
@@ -165,7 +167,7 @@ public class FlipperElement extends FieldElement {
 
         // If angle is at maximum, reduce speed so that the ball won't fly off when it hits.
         if (getEffectiveMotorSpeed() > 0.5f) {
-            float topAngle = (isReversed()) ? jointDef.lowerAngle : jointDef.upperAngle;
+            float topAngle = (isReversed()) ? joint.getLowerLimit() : joint.getUpperLimit();
             if (Math.abs(topAngle - joint.getJointAngle()) < 0.05) {
                 setEffectiveMotorSpeed(0.5f);
             }
@@ -180,8 +182,34 @@ public class FlipperElement extends FieldElement {
         // Only adjust speed if state is changing, so we don't accelerate flipper that's been
         // slowed down in tick()
         if (active != this.isFlipperEngaged()) {
+            // Restore full angle limits for binary input.
+            joint.setLimits(jointDef.lowerAngle, jointDef.upperAngle);
             float speed = (active) ? upspeed : -downspeed;
             setEffectiveMotorSpeed(speed);
+        }
+    }
+
+    /**
+     * Sets the flipper engagement level from 0.0 (fully released) to 1.0 (fully engaged).
+     * Dynamically adjusts the joint angle limit so the flipper only travels a fraction of
+     * its full range, and drives the motor toward that limit.
+     */
+    public void setFlipperEngageLevel(float level) {
+        if (level <= 0f) {
+            // Fully released: restore full limits so flipper can fall all the way down.
+            joint.setLimits(jointDef.lowerAngle, jointDef.upperAngle);
+            setEffectiveMotorSpeed(-downspeed);
+        } else {
+            // Restrict the travel angle proportionally.
+            float limitedRange = fullAngleRange * level;
+            if (isReversed()) {
+                // Reversed: lowerAngle is negative (up), upperAngle is 0 (down).
+                joint.setLimits(-limitedRange, 0);
+            } else {
+                // Normal: lowerAngle is 0 (down), upperAngle is positive (up).
+                joint.setLimits(0, limitedRange);
+            }
+            setEffectiveMotorSpeed(upspeed);
         }
     }
 

@@ -6,6 +6,10 @@
     <string name="independent_flippers_pref_summary_on">A touch activates the flippers on the same side of the screen</string>
     <string name="independent_flippers_pref_summary_off">Any touch activates all flippers</string>
 
+    <string name="analog_triggers_pref_title">Analog triggers</string>
+    <string name="analog_triggers_pref_summary_on">Trigger pull controls flipper angle</string>
+    <string name="analog_triggers_pref_summary_off">Triggers act as digital buttons</string>
+
     <string name="line_width_pref_title">Line width</string>
     <string name="line_width_pref_dialog_message">Enter the line width in pixels, or 0 to use a default width based on the screen resolution.</string>
 

@@ -15,10 +15,11 @@
 		    android:title="@string/independent_flippers_pref_title" 
 		    android:summaryOff="@string/independent_flippers_pref_summary_off"
 		    android:summaryOn="@string/independent_flippers_pref_summary_on" />
-		
-		<com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="zoom" android:defaultValue="true" android:enabled="true"
-		    android:title="@string/zoom_pref_title" />
 
+		<com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="analogTriggers" android:defaultValue="true" android:enabled="true"
+		    android:title="@string/analog_triggers_pref_title"
+		    android:summaryOff="@string/analog_triggers_pref_summary_off"
+		    android:summaryOn="@string/analog_triggers_pref_summary_on" />
 		<ListPreference
 			android:key="gameSpeed"
 			android:title="@string/game_speed_pref_title"
