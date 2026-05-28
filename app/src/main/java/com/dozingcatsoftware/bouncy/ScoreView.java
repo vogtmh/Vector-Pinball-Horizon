@@ -33,6 +33,9 @@ public class ScoreView extends View {
     Paint remainingBallPaint = new Paint();
     Paint multiplierPaint = new Paint();
     int backgroundColor = Color.argb(255, 24, 24, 24);
+    boolean overlayMode = false;
+    static final int OVERLAY_BACKGROUND_COLOR = Color.argb(160, 24, 24, 24);
+    static final int OPAQUE_BACKGROUND_COLOR = Color.argb(255, 24, 24, 24);
     DisplayMetrics metrics = new DisplayMetrics();
 
     List<Long> highScores;
@@ -266,5 +269,10 @@ public class ScoreView extends View {
 
     public void setDebugMessage(String msg) {
         debugMessage = msg;
+    }
+
+    public void setOverlayMode(boolean overlay) {
+        overlayMode = overlay;
+        backgroundColor = overlay ? OVERLAY_BACKGROUND_COLOR : OPAQUE_BACKGROUND_COLOR;
     }
 }

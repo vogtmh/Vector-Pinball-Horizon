@@ -7,4 +7,10 @@
         -->
         <item name="android:navigationBarColor">#010101</item>
     </style>
+
+    <style name="Theme.VPPreferences" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:navigationBarColor">#010101</item>
+    </style>
 </resources>

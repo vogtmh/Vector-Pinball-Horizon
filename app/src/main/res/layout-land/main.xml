@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:orientation="horizontal">
+
+    <!--
+    Spacer views for edge-to-edge mode (Android 15+). In landscape, left/right insets are needed
+    for camera cutouts and navigation bars. (See BouncyActivity.applyWindowInsets).
+    -->
+    <View
+        android:id="@+id/leftSpacerView"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:background="#000"
+        android:visibility="gone"
+    />
+
+	<FrameLayout
+		android:layout_width="0px"
+		android:layout_height="fill_parent"
+		android:layout_weight="1">
+
+		<com.dozingcatsoftware.bouncy.CanvasFieldView
+			android:id="@+id/canvasFieldView"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:defaultFocusHighlightEnabled="false"
+			android:visibility="gone" />
+
+		<com.dozingcatsoftware.bouncy.GLFieldView
+			android:id="@+id/glFieldView"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:defaultFocusHighlightEnabled="false"
+			android:visibility="gone" />
+
+        <!-- ScoreView overlays the game field in landscape for maximum immersion -->
+        <FrameLayout
+            android:layout_width="fill_parent"
+            android:layout_height="48dp"
+            android:layout_gravity="top">
+
+            <!--
+            Top spacer to push the score view below any display cutouts in landscape.
+            Height is set dynamically by BouncyActivity.applyWindowInsets.
+            -->
+            <View
+                android:id="@+id/topSpacerView"
+                android:layout_height="0dp"
+                android:layout_width="fill_parent"
+                android:background="#00000000"
+                android:visibility="gone"
+            />
+
+            <com.dozingcatsoftware.bouncy.ScoreView
+                android:id="@+id/scoreView"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:focusable="false"
+                android:onClick="scoreViewClicked" />
+
+            <ImageView
+                android:id="@+id/pauseIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_gravity="top"
+                android:src="@drawable/ic_baseline_pause_circle_outline_24"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/buttonPanel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="480dp"
+            android:gravity="center"
+            android:layout_gravity="center_vertical|left"
+            android:layout_marginLeft="16dp"
+            android:background="@layout/rounded_border"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp">
+
+            <LinearLayout
+                android:id="@+id/selectTableRow"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageButton
+                    android:id="@+id/previousTableButton"
+                    android:src="@drawable/ic_baseline_arrow_left_60"
+                    android:background="#0000"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="doPreviousTable"
+                    android:focusableInTouchMode="true" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:textSize="20dp"
+                    android:textColor="#F0F0F0"
+                    android:text="@string/change_table_button_label" />
+                <ImageButton
+                    android:id="@+id/nextTableButton"
+                    android:src="@drawable/ic_baseline_arrow_right_60"
+                    android:background="#0000"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="doNextTable"
+                    android:focusableInTouchMode="true" />
+            </LinearLayout>
+
+            <TableLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginHorizontal="16dp"
+                android:orientation="vertical">
+
+                <CheckBox
+                    android:id="@+id/unlimitedBallsToggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/unlimited_balls_label" />
+
+                <Button
+                    android:id="@+id/startGameButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:onClick="doStartGame"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/start_game_button_label" />
+
+                <Button
+                    android:id="@+id/resumeGameButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:onClick="doStartGame"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/resume_game_button_label"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/endGameButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:onClick="doEndGame"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/end_game_button_label"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/highScoreButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:onClick="showHighScore"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/show_high_score_button_label" />
+
+                <Button
+                    android:id="@+id/aboutButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:onClick="doAbout"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/help_button_label" />
+
+                <Button
+                    android:id="@+id/preferencesButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:onClick="doPreferences"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/preferences_button_label" />
+
+                <Button
+                    android:id="@+id/quitButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:onClick="doQuit"
+                    android:focusableInTouchMode="true"
+                    android:text="@string/quit_button_label" />
+            </TableLayout>
+        </LinearLayout>
+
+		<TableLayout
+			android:id="@+id/highScorePanel"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:maxWidth="480dp"
+			android:layout_gravity="center_vertical|left"
+			android:layout_marginLeft="16dp"
+            android:background="@layout/rounded_border"
+			android:orientation="vertical"
+			android:padding="32dp"
+			android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#F0F0F0"
+                android:paddingBottom="20dp"
+                android:text="@string/high_score_table_title" />
+
+            <LinearLayout
+                android:id="@+id/highScoreListLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="4dp"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/noHighScoresTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="#F0F0F0"
+                android:textSize="18sp"
+                android:paddingBottom="24dp"
+                android:text="@string/no_high_scores_message" />
+
+            <Button
+                android:id="@+id/hideHighScoreButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:onClick="hideHighScore"
+                android:focusableInTouchMode="true"
+                android:text="@string/hide_high_score_button_label" />
+
+        </TableLayout>
+
+    </FrameLayout>
+
+    <View
+        android:id="@+id/rightSpacerView"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:background="#000"
+        android:visibility="gone"
+    />
+
+    <!--
+    bottomSpacerView is not used in landscape but must exist since BouncyActivity references it.
+    -->
+    <View
+        android:id="@+id/bottomSpacerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+    />
+
+</LinearLayout>

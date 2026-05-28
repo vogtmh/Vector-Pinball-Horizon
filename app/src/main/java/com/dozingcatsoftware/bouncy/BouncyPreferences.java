@@ -7,7 +7,6 @@ import android.graphics.Insets;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.PreferenceActivity;
 import android.view.KeyEvent;
@@ -47,15 +46,26 @@ public class BouncyPreferences extends PreferenceActivity {
 
         // If multitouch or haptic feedback APIs aren't available, disable the preference items.
         if (!supportsMultitouch()) {
-            CheckBoxPreference mtPref = (CheckBoxPreference) findPreference("independentFlippers");
+            ColoredSwitchPreference mtPref = (ColoredSwitchPreference) findPreference("independentFlippers");
             mtPref.setChecked(false);
             mtPref.setEnabled(false);
         }
         if (!supportsHapticFeedback(this)) {
-            CheckBoxPreference hapticPref = (CheckBoxPreference) findPreference("haptic");
+            ColoredSwitchPreference hapticPref = (ColoredSwitchPreference) findPreference("haptic");
             hapticPref.setChecked(false);
             hapticPref.setEnabled(false);
         }
+
+        // Assign each toggle a color from the pinball table palettes.
+        assignSwitchColor("sound",               Color.rgb(227, 154,  59)); // Gold (T7/T8)
+        assignSwitchColor("music",               Color.rgb(  0, 170, 102)); // Teal (T6/T7)
+        assignSwitchColor("haptic",              Color.rgb(255, 153,   0)); // Orange (T6)
+        assignSwitchColor("independentFlippers", Color.rgb( 57, 147, 221)); // Blue (T8)
+        assignSwitchColor("zoom",                Color.rgb(170,  34, 204)); // Purple (T6)
+        assignSwitchColor("showBallTrails",      Color.rgb(  0, 224, 224)); // Cyan (T1-T3)
+        assignSwitchColor("showScoreAnimations", Color.rgb(204,   0,   0)); // Red (T5)
+        assignSwitchColor("useOpenGL",           Color.rgb(  0, 204,   0)); // Green (T5)
+        assignSwitchColor("showFPS",             Color.rgb(192,  50,  33)); // Crimson (T8)
 
         // For the speed preference we want to show the user-visible value as the summary.
         // Setting the summary to "%s" is supposed to do that, but it doesn't work on older
@@ -66,6 +76,11 @@ public class BouncyPreferences extends PreferenceActivity {
             speedPref.setSummary(entryForListValue(speedPref, String.valueOf(newValue)));
             return true;
         });
+    }
+
+    private void assignSwitchColor(String key, int color) {
+        ColoredSwitchPreference pref = (ColoredSwitchPreference) findPreference(key);
+        if (pref != null) pref.setSwitchColor(color);
     }
 
     private static CharSequence entryForListValue(ListPreference pref, String value) {

@@ -2,21 +2,21 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 	<PreferenceCategory android:title="Preferences">
 	
-		<CheckBoxPreference android:key="sound" android:defaultValue="true" android:enabled="true"
+		<com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="sound" android:defaultValue="true" android:enabled="true"
 		    android:title="@string/sound_pref_title" />
 		
-		<CheckBoxPreference android:key="music" android:defaultValue="true" android:enabled="true"
+		<com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="music" android:defaultValue="true" android:enabled="true"
 		    android:title="@string/music_pref_title" />
 
-		<CheckBoxPreference android:key="haptic" android:defaultValue="false" android:enabled="true"
+		<com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="haptic" android:defaultValue="true" android:enabled="true"
 			android:title="@string/haptic_feedback_pref_title" />
 
-		<CheckBoxPreference android:key="independentFlippers" android:defaultValue="true" android:enabled="true"
+		<com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="independentFlippers" android:defaultValue="true" android:enabled="true"
 		    android:title="@string/independent_flippers_pref_title" 
 		    android:summaryOff="@string/independent_flippers_pref_summary_off"
 		    android:summaryOn="@string/independent_flippers_pref_summary_on" />
 		
-		<CheckBoxPreference android:key="zoom" android:defaultValue="true" android:enabled="true"
+		<com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="zoom" android:defaultValue="true" android:enabled="true"
 		    android:title="@string/zoom_pref_title" />
 
 		<ListPreference
@@ -27,13 +27,13 @@
 			android:defaultValue="normal"
 		/>
 
-        <CheckBoxPreference android:key="showBallTrails" android:defaultValue="true" android:enabled="true"
+        <com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="showBallTrails" android:defaultValue="true" android:enabled="true"
             android:title="@string/ball_trails_pref_title" />
 
-        <CheckBoxPreference android:key="showScoreAnimations" android:defaultValue="true" android:enabled="true"
+        <com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="showScoreAnimations" android:defaultValue="true" android:enabled="true"
             android:title="@string/score_animations_pref_title" />
 
-        <CheckBoxPreference android:key="useOpenGL" android:defaultValue="true" android:enabled="true"
+        <com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="useOpenGL" android:defaultValue="false" android:enabled="true"
 		    android:title="@string/use_opengl_pref_title" />
 
 		<EditTextPreference android:key="lineWidth" android:enabled="true"
@@ -41,7 +41,7 @@
 			android:dialogMessage="@string/line_width_pref_dialog_message"
 			android:inputType="number" />
 
-		<CheckBoxPreference android:key="showFPS" android:enabled="true"
+		<com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="showFPS" android:enabled="true"
 		    android:title="@string/show_fps_pref_title" />
 		
 	</PreferenceCategory>

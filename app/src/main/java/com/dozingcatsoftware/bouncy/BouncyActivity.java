@@ -89,6 +89,8 @@ public class BouncyActivity extends Activity {
 
     View topSpacerView;
     View bottomSpacerView;
+    View leftSpacerView;
+    View rightSpacerView;
 
     final static int ACTIVITY_PREFERENCES = 1;
 
@@ -197,6 +199,11 @@ public class BouncyActivity extends Activity {
 
         topSpacerView = findViewById(R.id.topSpacerView);
         bottomSpacerView = findViewById(R.id.bottomSpacerView);
+        leftSpacerView = findViewById(R.id.leftSpacerView);
+        rightSpacerView = findViewById(R.id.rightSpacerView);
+
+        // In landscape, ScoreView overlays the game field with a semi-transparent background.
+        updateScoreViewOverlayMode();
 
         // Ugly workaround that seems to be required when supporting keyboard navigation.
         // In main.xml, all buttons have `android:focusableInTouchMode` set to true.
@@ -285,10 +292,38 @@ public class BouncyActivity extends Activity {
         updateFromPreferences();
     }
 
+    private boolean isLandscape() {
+        return getResources().getConfiguration().orientation
+                == android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+    }
+
+    void updateZoomForOrientation() {
+        if (isLandscape()) {
+            // Dynamically compute zoom so the field width fills ~90% of screen width.
+            fieldViewManager.setLandscapeAutoZoom(true);
+        } else {
+            fieldViewManager.setLandscapeAutoZoom(false);
+            fieldViewManager.setZoom(useZoom ? ZOOM_FACTOR : 1.0f);
+        }
+    }
+
+    void updateScoreViewOverlayMode() {
+        if (scoreView != null) {
+            scoreView.setOverlayMode(isLandscape());
+        }
+    }
+
+    @Override
+    public void onConfigurationChanged(android.content.res.Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        updateZoomForOrientation();
+        updateScoreViewOverlayMode();
+        fieldViewManager.draw();
+    }
+
     @TargetApi(Build.VERSION_CODES.R)
     WindowInsets applyWindowInsets(View v, WindowInsets windowInsets) {
-        // Adjust the height of the spacer views to cover nav bars and display cutouts.
-        // This doesn't yet handle side insets, which are hopefully not common.
+        // Adjust the size of spacer views to cover nav bars and display cutouts.
 
         Insets insets = windowInsets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
 
@@ -301,6 +336,20 @@ public class BouncyActivity extends Activity {
         bottomLayoutParams.height = insets.bottom;
         bottomSpacerView.setLayoutParams(bottomLayoutParams);
         bottomSpacerView.setVisibility(View.VISIBLE);
+
+        // Handle side insets for landscape orientation (camera cutouts, rounded corners).
+        if (leftSpacerView != null) {
+            ViewGroup.LayoutParams leftLayoutParams = leftSpacerView.getLayoutParams();
+            leftLayoutParams.width = insets.left;
+            leftSpacerView.setLayoutParams(leftLayoutParams);
+            leftSpacerView.setVisibility(insets.left > 0 ? View.VISIBLE : View.GONE);
+        }
+        if (rightSpacerView != null) {
+            ViewGroup.LayoutParams rightLayoutParams = rightSpacerView.getLayoutParams();
+            rightLayoutParams.width = insets.right;
+            rightSpacerView.setLayoutParams(rightLayoutParams);
+            rightSpacerView.setVisibility(insets.right > 0 ? View.VISIBLE : View.GONE);
+        }
 
         return WindowInsets.CONSUMED;
     }
@@ -456,6 +505,41 @@ public class BouncyActivity extends Activity {
         return super.onKeyDown(keyCode, event);
     }
 
+    // Track trigger state for menu table switching (edge detection).
+    private boolean menuLeftTriggerPressed = false;
+    private boolean menuRightTriggerPressed = false;
+    private static final float MENU_TRIGGER_THRESHOLD = 0.5f;
+
+    @Override public boolean onGenericMotionEvent(MotionEvent event) {
+        // When showing the main menu, allow analog triggers to switch tables.
+        if (!field.getGameState().isGameInProgress() && buttonPanel.getVisibility() == View.VISIBLE) {
+            if ((event.getSource() & android.view.InputDevice.SOURCE_JOYSTICK) != 0) {
+                boolean handled = false;
+                boolean lt = event.getAxisValue(MotionEvent.AXIS_LTRIGGER) >= MENU_TRIGGER_THRESHOLD;
+                if (lt && !menuLeftTriggerPressed) {
+                    doPreviousTable(null);
+                    startGameButton.requestFocus();
+                    handled = true;
+                }
+                menuLeftTriggerPressed = lt;
+
+                boolean rt = event.getAxisValue(MotionEvent.AXIS_RTRIGGER) >= MENU_TRIGGER_THRESHOLD;
+                if (rt && !menuRightTriggerPressed) {
+                    doNextTable(null);
+                    startGameButton.requestFocus();
+                    handled = true;
+                }
+                menuRightTriggerPressed = rt;
+                if (handled) return true;
+                // Fall through so joystick/dpad axis events reach super for navigation.
+            }
+        }
+        if (fieldViewManager.handleGenericMotionEvent(event)) {
+            return true;
+        }
+        return super.onGenericMotionEvent(event);
+    }
+
     public void pauseGame() {
         VPSoundpool.pauseMusic();
         GameState state = field.getGameState();
@@ -508,6 +592,7 @@ public class BouncyActivity extends Activity {
             buttonPanel.setVisibility(View.GONE);
             highScorePanel.setVisibility(View.GONE);
             pauseButton.setVisibility(View.VISIBLE);
+            scoreView.setVisibility(View.VISIBLE);
         }
         else if (showingHighScores) {
             // High scores are visible, hide main menu.
@@ -515,6 +600,7 @@ public class BouncyActivity extends Activity {
             highScorePanel.setVisibility(View.VISIBLE);
             hideHighScoreButton.requestFocus();
             pauseButton.setVisibility(View.GONE);
+            scoreView.setVisibility(View.GONE);
         }
         else if (gameInProgress) {
             // Menu when game is in progress, show resume/end buttons, hide table picker.
@@ -527,6 +613,7 @@ public class BouncyActivity extends Activity {
             endGameButton.setVisibility(View.VISIBLE);
             resumeGameButton.requestFocus();
             pauseButton.setVisibility(View.GONE);
+            scoreView.setVisibility(View.VISIBLE);
         } else {
             // Menu when game is not in progress, show table picker.
             buttonPanel.setVisibility(View.VISIBLE);
@@ -538,6 +625,20 @@ public class BouncyActivity extends Activity {
             endGameButton.setVisibility(View.GONE);
             startGameButton.requestFocus();
             pauseButton.setVisibility(View.GONE);
+            scoreView.setVisibility(View.GONE);
+        }
+
+        // In landscape, push the table to the right when a menu panel is visible
+        // and no game is running, so the menu and table don't overlap.
+        // Skip bias changes during an active game to avoid a visible flash when
+        // the pause menu closes (the zoom transition would briefly show the shift).
+        boolean gameRunning = field != null && field.getGameState().isGameInProgress();
+        boolean menuVisible = buttonPanel.getVisibility() == View.VISIBLE
+                || highScorePanel.getVisibility() == View.VISIBLE;
+        if (!gameRunning && isLandscape() && menuVisible) {
+            fieldViewManager.setHorizontalBias(0.75f);
+        } else {
+            fieldViewManager.setHorizontalBias(0.5f);
         }
     }
 
@@ -597,7 +698,7 @@ public class BouncyActivity extends Activity {
         boolean showScoreAnimations = prefs.getBoolean("showScoreAnimations", true);
         field.setScoreAnimationsEnabled(showScoreAnimations);
 
-        boolean useOpenGL = prefs.getBoolean("useOpenGL", true);
+        boolean useOpenGL = prefs.getBoolean("useOpenGL", false);
         if (useOpenGL) {
             if (glFieldView.getVisibility() != View.VISIBLE) {
                 canvasFieldView.setVisibility(View.GONE);
@@ -614,14 +715,14 @@ public class BouncyActivity extends Activity {
         }
 
         useZoom = prefs.getBoolean("zoom", true);
-        fieldViewManager.setZoom(useZoom ? ZOOM_FACTOR : 1.0f);
+        updateZoomForOrientation();
 
         String gameSpeed = prefs.getString("gameSpeed", "");
         field.setGameSpeedMultiplier(speedMultiplierForPreferenceValue(gameSpeed));
 
         VPSoundpool.setSoundEnabled(prefs.getBoolean("sound", true));
         VPSoundpool.setMusicEnabled(prefs.getBoolean("music", true));
-        useHapticFeedback = prefs.getBoolean("haptic", false);
+        useHapticFeedback = prefs.getBoolean("haptic", true);
     }
 
     // Called every 100 milliseconds while app is visible, to update score view and high score.

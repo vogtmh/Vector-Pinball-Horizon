@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.VPTheme" parent="@android:style/Theme.NoTitleBar.Fullscreen" />
+
+    <style name="Theme.VPPreferences" parent="@android:style/Theme.Black">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
 </resources>

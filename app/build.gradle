@@ -10,7 +10,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.dozingcatsoftware.bouncy"
+        applicationId "com.mavodev.vphorizon"
         minSdkVersion 4
         targetSdkVersion 36
         versionCode 42

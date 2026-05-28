@@ -35,6 +35,10 @@ public class FieldViewManager {
 
     boolean independentFlippers;
     float maxZoom = 1.0f;
+    boolean landscapeAutoZoom = false;
+    static final float LANDSCAPE_FILL_FRACTION = 0.9f;
+    // Horizontal bias for positioning the field when unzoomed. 0=left, 0.5=center, 1=right.
+    float horizontalBias = 0.5f;
     int customLineWidth = 0;
 
     // x/y offsets and scale are cached at the beginning of draw(), to avoid repeated calls as
@@ -87,6 +91,14 @@ public class FieldViewManager {
         maxZoom = value;
     }
 
+    public void setLandscapeAutoZoom(boolean value) {
+        landscapeAutoZoom = value;
+    }
+
+    public void setHorizontalBias(float bias) {
+        horizontalBias = bias;
+    }
+
     /**
      * Saves scale and x and y offsets for use by world2pixel methods, avoiding repeated method
      * calls and math operations.
@@ -96,8 +108,18 @@ public class FieldViewManager {
         float zr = field.zoomRatio();
         // Apply a cubic Bezier function to smoothly accelerate and decelerate.
         float easedRatio = zr * zr * (3.0f - 2.0f * zr);
-        // The actual zoom factor ranges from 1 when zoomRatio() is 0 to `maxZoom` when it's 1.
-        float zoomFactor = 1 + (maxZoom - 1) * easedRatio;
+        // Compute effective max zoom. In landscape auto-zoom mode, calculate the zoom
+        // factor that makes the field width fill LANDSCAPE_FILL_FRACTION of screen width.
+        float effectiveMaxZoom = maxZoom;
+        if (landscapeAutoZoom && fieldRenderer.getWidth() > fieldRenderer.getHeight()) {
+            float baseScale = Math.min(
+                    fieldRenderer.getWidth() / field.getWidth(),
+                    fieldRenderer.getHeight() / field.getHeight());
+            float targetScale = LANDSCAPE_FILL_FRACTION * fieldRenderer.getWidth() / field.getWidth();
+            effectiveMaxZoom = Math.max(targetScale / baseScale, 1.0f);
+        }
+        // The actual zoom factor ranges from 1 when zoomRatio() is 0 to `effectiveMaxZoom` when it's 1.
+        float zoomFactor = 1 + (effectiveMaxZoom - 1) * easedRatio;
         cachedScale = getScale(zoomFactor);
         // Center the zoomed view on the ball if available, or the launch position if not.
         Vector2 center = field.zoomCenterPoint();
@@ -107,7 +129,7 @@ public class FieldViewManager {
         // the table is centered.
         float spanX = fieldRenderer.getWidth() / cachedScale;
         if (spanX >= field.getWidth()) {
-            cachedXOffset = -(spanX - field.getWidth()) / 2;
+            cachedXOffset = -(spanX - field.getWidth()) * horizontalBias;
         }
         else {
             float rawXOffset = center.x - spanX / 2;
@@ -297,8 +319,8 @@ public class FieldViewManager {
         }
     }
 
-    // L1 and R1 are left and right buttons on a controller. It would be nice to support
-    // the left and right triggers as well, but they seem to not send events.
+    // L1 and R1 are left and right buttons on a controller. L2 and R2 are analog triggers
+    // handled via onGenericMotionEvent in handleGenericMotionEvent below.
     static List<Integer> LEFT_FLIPPER_KEYS = Arrays.asList(
             KeyEvent.KEYCODE_Z, KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_BUTTON_L1);
     static List<Integer> RIGHT_FLIPPER_KEYS = Arrays.asList(
@@ -349,6 +371,38 @@ public class FieldViewManager {
             return true;
         }
         return false;
+    }
+
+    // Analog trigger threshold: values above this are treated as "pressed".
+    private static final float TRIGGER_THRESHOLD = 0.5f;
+    private boolean leftTriggerPressed = false;
+    private boolean rightTriggerPressed = false;
+
+    public boolean handleGenericMotionEvent(MotionEvent event) {
+        if ((event.getSource() & android.view.InputDevice.SOURCE_JOYSTICK) == 0) {
+            return false;
+        }
+        synchronized (field) {
+            if (!field.getGameState().isGameInProgress() || field.getGameState().isPaused()) {
+                return false;
+            }
+            boolean handled = false;
+            boolean lt = event.getAxisValue(MotionEvent.AXIS_LTRIGGER) >= TRIGGER_THRESHOLD;
+            if (lt != leftTriggerPressed) {
+                leftTriggerPressed = lt;
+                field.setLeftFlippersEngaged(lt);
+                if (lt) launchBallIfNeeded();
+                handled = true;
+            }
+            boolean rt = event.getAxisValue(MotionEvent.AXIS_RTRIGGER) >= TRIGGER_THRESHOLD;
+            if (rt != rightTriggerPressed) {
+                rightTriggerPressed = rt;
+                field.setRightFlippersEngaged(rt);
+                if (rt) launchBallIfNeeded();
+                handled = true;
+            }
+            return handled;
+        }
     }
 
     public void draw() {
