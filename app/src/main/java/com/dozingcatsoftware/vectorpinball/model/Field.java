@@ -171,6 +171,7 @@ public class Field implements ContactListener {
         }
         fieldElementsToTick = tickElements.toArray(new FieldElement[0]);
         fieldElementsArray = layout.getFieldElements().toArray(new FieldElement[0]);
+        sortedFieldElements = null;
 
         delegate = delegateFn.apply(this);
     }
@@ -548,9 +549,11 @@ public class Field implements ContactListener {
         return 0;
     }
 
-    // Reusable array for sorting elements and balls into the order in which they should be draw.
+    // Reusable array for merging elements into the order in which they should be drawn.
     // Earlier items are drawn first, so "upper" items should compare "greater" than lower.
     private final ArrayList<IDrawable> elementsInDrawOrder = new ArrayList<>();
+    // Pre-sorted field elements (sorted once at table load; field element layers never change).
+    private IDrawable[] sortedFieldElements;
     // At the same layer, balls are drawn after field elements, which are drawn after custom shapes.
     // Except bumpers which are drawn last, so balls appear under their outer circles.
     private final Comparator<IDrawable> drawOrdering = Comparator
@@ -575,19 +578,57 @@ public class Field implements ContactListener {
      * after (i.e. on top of) all elements at its level.
      */
     public void draw(IFieldRenderer renderer) {
-        // Draw levels low to high, and draw each ball after everything else at its level.
-        elementsInDrawOrder.clear();
-        elementsInDrawOrder.addAll(Arrays.asList(this.getFieldElementsArray()));
-        elementsInDrawOrder.addAll(this.balls);
-        elementsInDrawOrder.addAll(this.shapes);
-        if (this.showScoreAnimations) {
-            elementsInDrawOrder.addAll(this.scoreAnimations);
+        // Pre-sort field elements once (they don't change layer after load).
+        if (sortedFieldElements == null) {
+            FieldElement[] fe = this.getFieldElementsArray();
+            sortedFieldElements = new IDrawable[fe.length];
+            System.arraycopy(fe, 0, sortedFieldElements, 0, fe.length);
+            Arrays.sort(sortedFieldElements, drawOrdering);
         }
-        Collections.sort(elementsInDrawOrder, drawOrdering);
+
+        // Build draw order: start with pre-sorted field elements,
+        // then insert the small number of dynamic items in sorted position.
+        elementsInDrawOrder.clear();
+        elementsInDrawOrder.ensureCapacity(
+                sortedFieldElements.length + balls.size() + shapes.size() + scoreAnimations.size());
+        for (IDrawable e : sortedFieldElements) {
+            elementsInDrawOrder.add(e);
+        }
+        // Insert dynamic items (balls, shapes, score animations) in sorted order.
+        // These are typically 1-15 items total, so binary insertion is fast.
+        insertSorted(this.balls);
+        insertSorted(this.shapes);
+        if (this.showScoreAnimations) {
+            insertSorted(this.scoreAnimations);
+        }
 
         for (int i = 0; i < elementsInDrawOrder.size(); i++) {
             this.elementsInDrawOrder.get(i).draw(this, renderer);
         }
+    }
+
+    /** Inserts items into elementsInDrawOrder maintaining sort order. */
+    private void insertSorted(List<? extends IDrawable> items) {
+        for (int i = 0; i < items.size(); i++) {
+            IDrawable item = items.get(i);
+            int pos = findInsertionPoint(item);
+            elementsInDrawOrder.add(pos, item);
+        }
+    }
+
+    /** Binary search for insertion point in the already-sorted elementsInDrawOrder list. */
+    private int findInsertionPoint(IDrawable item) {
+        int low = 0;
+        int high = elementsInDrawOrder.size();
+        while (low < high) {
+            int mid = (low + high) >>> 1;
+            if (drawOrdering.compare(elementsInDrawOrder.get(mid), item) <= 0) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+        return low;
     }
 
     ArrayList<FlipperElement> activatedFlippers = new ArrayList<>();
