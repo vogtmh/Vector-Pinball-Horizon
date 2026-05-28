@@ -84,6 +84,7 @@ public class BouncyActivity extends Activity {
     Button showHighScoreButton;
     Button hideHighScoreButton;
     CheckBox unlimitedBallsToggle;
+    TextView tableIndicator;
     ViewGroup highScoreListLayout;
     View noHighScoresTextView;
 
@@ -191,6 +192,7 @@ public class BouncyActivity extends Activity {
         preferencesButton = findViewById(R.id.preferencesButton);
         quitButton = findViewById(R.id.quitButton);
         unlimitedBallsToggle = findViewById(R.id.unlimitedBallsToggle);
+        tableIndicator = findViewById(R.id.tableIndicator);
         showHighScoreButton = findViewById(R.id.highScoreButton);
         hideHighScoreButton = findViewById(R.id.hideHighScoreButton);
         highScoreListLayout = findViewById(R.id.highScoreListLayout);
@@ -204,6 +206,7 @@ public class BouncyActivity extends Activity {
 
         // In landscape, ScoreView overlays the game field with a semi-transparent background.
         updateScoreViewOverlayMode();
+        updateTableIndicator();
 
         // Ugly workaround that seems to be required when supporting keyboard navigation.
         // In main.xml, all buttons have `android:focusableInTouchMode` set to true.
@@ -955,8 +958,15 @@ public class BouncyActivity extends Activity {
         this.highScores = this.highScoresFromPreferencesForCurrentLevel();
         this.lastScore = this.lastScoreFromPreferencesForCurrentLevel();
         scoreView.setHighScores(highScores);
+        updateTableIndicator();
         // Performance can be different on different tables.
         fieldDriver.resetFrameRate();
+    }
+
+    void updateTableIndicator() {
+        if (tableIndicator != null) {
+            tableIndicator.setText(currentLevel + " / " + numberOfLevels);
+        }
     }
 
     public void doSwitchTable(View view) {

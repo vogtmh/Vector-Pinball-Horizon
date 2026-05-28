@@ -109,11 +109,22 @@
                     android:focusableInTouchMode="true" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/tableIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:textColor="#88FFFFFF"
+                android:layout_marginBottom="4dp" />
+
             <TableLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginHorizontal="16dp"
+                android:minWidth="240dp"
                 android:orientation="vertical">
 
                 <CheckBox
@@ -122,6 +133,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
                     android:focusableInTouchMode="true"
+                    android:textColor="#BBBBBB"
+                    android:buttonTint="#3bbdfa"
                     android:text="@string/unlimited_balls_label" />
 
                 <Button
@@ -131,6 +144,10 @@
                     android:layout_marginBottom="24dp"
                     android:onClick="doStartGame"
                     android:focusableInTouchMode="true"
+                    android:background="@drawable/neon_button_accent_bg"
+                    android:textColor="#E39A3B"
+                    android:textSize="16sp"
+                    android:textAllCaps="false"
                     android:text="@string/start_game_button_label" />
 
                 <!-- Resume button is at the top when visible, so it gets extra top margin. -->
@@ -142,6 +159,10 @@
                     android:layout_marginBottom="8dp"
                     android:onClick="doStartGame"
                     android:focusableInTouchMode="true"
+                    android:background="@drawable/neon_button_accent_bg"
+                    android:textColor="#E39A3B"
+                    android:textSize="16sp"
+                    android:textAllCaps="false"
                     android:text="@string/resume_game_button_label"
                     android:visibility="gone" />
 
@@ -152,6 +173,10 @@
                     android:layout_marginBottom="8dp"
                     android:onClick="doEndGame"
                     android:focusableInTouchMode="true"
+                    android:background="@drawable/neon_button_bg"
+                    android:textColor="#CC0000"
+                    android:textSize="16sp"
+                    android:textAllCaps="false"
                     android:text="@string/end_game_button_label"
                     android:visibility="gone" />
 
@@ -162,6 +187,10 @@
                     android:layout_marginBottom="8dp"
                     android:onClick="showHighScore"
                     android:focusableInTouchMode="true"
+                    android:background="@drawable/neon_button_bg"
+                    android:textColor="#3bbdfa"
+                    android:textSize="16sp"
+                    android:textAllCaps="false"
                     android:text="@string/show_high_score_button_label" />
 
                 <Button
@@ -171,24 +200,36 @@
                     android:layout_marginBottom="8dp"
                     android:onClick="doAbout"
                     android:focusableInTouchMode="true"
+                    android:background="@drawable/neon_button_bg"
+                    android:textColor="#3bbdfa"
+                    android:textSize="16sp"
+                    android:textAllCaps="false"
                     android:text="@string/help_button_label" />
 
                 <Button
                     android:id="@+id/preferencesButton"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
                     android:onClick="doPreferences"
                     android:focusableInTouchMode="true"
+                    android:background="@drawable/neon_button_bg"
+                    android:textColor="#3bbdfa"
+                    android:textSize="16sp"
+                    android:textAllCaps="false"
                     android:text="@string/preferences_button_label" />
 
                 <Button
                     android:id="@+id/quitButton"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     android:onClick="doQuit"
                     android:focusableInTouchMode="true"
+                    android:background="@drawable/neon_button_bg"
+                    android:textColor="#888888"
+                    android:textSize="16sp"
+                    android:textAllCaps="false"
                     android:text="@string/quit_button_label" />
             </TableLayout>
         </LinearLayout>
@@ -238,6 +279,10 @@
                 android:layout_marginBottom="10dp"
                 android:onClick="hideHighScore"
                 android:focusableInTouchMode="true"
+                android:background="@drawable/neon_button_bg"
+                android:textColor="#3bbdfa"
+                android:textSize="16sp"
+                android:textAllCaps="false"
                 android:text="@string/hide_high_score_button_label" />
 
         </TableLayout>

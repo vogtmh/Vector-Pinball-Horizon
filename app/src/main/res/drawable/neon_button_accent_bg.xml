@@ -1,0 +1,23 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Focused: brighter gold for Start Game -->
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#33FFFFFF" />
+            <corners android:radius="12dp" />
+            <stroke android:width="1dp" android:color="#E39A3B" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#44E39A3B" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#22E39A3B" />
+            <corners android:radius="12dp" />
+            <stroke android:width="1dp" android:color="#88E39A3B" />
+        </shape>
+    </item>
+</selector>
