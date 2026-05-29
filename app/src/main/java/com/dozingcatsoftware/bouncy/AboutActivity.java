@@ -4,6 +4,8 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Insets;
 import android.os.Build;
@@ -40,6 +42,15 @@ public class AboutActivity extends Activity {
         }
         if (tableRulesText == null) tableRulesText = "";
         String displayText = baseText.replace("[TABLE_RULES]", tableRulesText);
+
+        // Replace [APP_HEADER] with app name and version from the manifest.
+        String appName = getString(R.string.app_name);
+        String versionName = "";
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            versionName = pInfo.versionName;
+        } catch (PackageManager.NameNotFoundException ignored) {}
+        displayText = displayText.replace("[APP_HEADER]", appName + " " + versionName);
 
         TextView tv = findViewById(R.id.aboutTextView);
         tv.setText(displayText);
