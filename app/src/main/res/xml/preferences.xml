@@ -34,7 +34,7 @@
         <com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="showScoreAnimations" android:defaultValue="true" android:enabled="true"
             android:title="@string/score_animations_pref_title" />
 
-        <com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="useOpenGL" android:defaultValue="false" android:enabled="true"
+        <com.dozingcatsoftware.bouncy.ColoredSwitchPreference android:key="useOpenGL" android:defaultValue="true" android:enabled="true"
 		    android:title="@string/use_opengl_pref_title" />
 
 		<EditTextPreference android:key="lineWidth" android:enabled="true"

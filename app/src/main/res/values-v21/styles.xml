@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.VPTheme" parent="android:Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@android:color/black</item>
         <!--
         On some devices setting solid black has no effect but nearly black works:
         https://stackoverflow.com/questions/51187710/android-navigationbarcolor-doesnt-change-to-black-only-to-black

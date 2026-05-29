@@ -208,6 +208,11 @@ public class BouncyActivity extends Activity {
         updateScoreViewOverlayMode();
         updateTableIndicator();
 
+        // Scale the button panel to fit the available screen height.
+        buttonPanel.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            scaleButtonPanelToFit();
+        });
+
         // Ugly workaround that seems to be required when supporting keyboard navigation.
         // In main.xml, all buttons have `android:focusableInTouchMode` set to true.
         // If it's not, then they don't get focused even when using the dpad on a
@@ -313,6 +318,23 @@ public class BouncyActivity extends Activity {
     void updateScoreViewOverlayMode() {
         if (scoreView != null) {
             scoreView.setOverlayMode(isLandscape());
+        }
+    }
+
+    /** Scales the button panel content if it's taller than the available screen height. */
+    void scaleButtonPanelToFit() {
+        if (buttonPanel.getVisibility() != View.VISIBLE) return;
+        View parent = (View) buttonPanel.getParent();
+        int availableHeight = parent.getHeight();
+        int panelHeight = buttonPanel.getHeight();
+        if (availableHeight <= 0 || panelHeight <= 0) return;
+        if (panelHeight > availableHeight) {
+            float scale = (float) availableHeight / panelHeight;
+            buttonPanel.setScaleY(scale);
+            buttonPanel.setScaleX(scale);
+        } else {
+            buttonPanel.setScaleY(1f);
+            buttonPanel.setScaleX(1f);
         }
     }
 

@@ -835,7 +835,10 @@ public class GL20Renderer implements IFieldRenderer.FloatOnlyRenderer, GLSurface
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
         // This projection matrix is applied to object coordinates in onDrawFrame().
-        float ratio = (float) width / height;
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+        // world2glX/Y map the largest dimension to [-1, 1], so the frustum must match.
+        float maxDim = Math.max(width, height);
+        float xRange = width / maxDim;
+        float yRange = height / maxDim;
+        Matrix.frustumM(projectionMatrix, 0, -xRange, xRange, -yRange, yRange, 3, 7);
     }
 }
