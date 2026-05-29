@@ -23,6 +23,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Insets;
 import android.graphics.Rect;
@@ -180,83 +182,13 @@ public class BouncyActivity extends Activity {
         lastScore = this.lastScoreFromPreferencesForCurrentLevel();
         scoreView.setHighScores(highScores);
 
-        buttonPanel = findViewById(R.id.buttonPanel);
-        selectTableRow = findViewById(R.id.selectTableRow);
-        highScorePanel = findViewById(R.id.highScorePanel);
-        nextTableButton = findViewById(R.id.nextTableButton);
-        previousTableButton = findViewById(R.id.previousTableButton);
-        startGameButton = findViewById(R.id.startGameButton);
-        resumeGameButton = findViewById(R.id.resumeGameButton);
-        endGameButton = findViewById(R.id.endGameButton);
-        aboutButton = findViewById(R.id.aboutButton);
-        preferencesButton = findViewById(R.id.preferencesButton);
-        quitButton = findViewById(R.id.quitButton);
-        unlimitedBallsToggle = findViewById(R.id.unlimitedBallsToggle);
-        tableIndicator = findViewById(R.id.tableIndicator);
-        showHighScoreButton = findViewById(R.id.highScoreButton);
-        hideHighScoreButton = findViewById(R.id.hideHighScoreButton);
-        highScoreListLayout = findViewById(R.id.highScoreListLayout);
-        noHighScoresTextView = findViewById(R.id.noHighScoresTextView);
-        pauseButton = findViewById(R.id.pauseIcon);
+        bindViews();
 
-        topSpacerView = findViewById(R.id.topSpacerView);
-        bottomSpacerView = findViewById(R.id.bottomSpacerView);
-        leftSpacerView = findViewById(R.id.leftSpacerView);
-        rightSpacerView = findViewById(R.id.rightSpacerView);
-
-        // In landscape, ScoreView overlays the game field with a semi-transparent background.
-        updateScoreViewOverlayMode();
-        updateTableIndicator();
-
-        // Scale the button panel to fit the available screen height.
-        buttonPanel.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
-            scaleButtonPanelToFit();
+        // Schedule a draw after views have been laid out (important after recreate on rotation).
+        buttonPanel.post(() -> {
+            updateFromPreferences();
+            fieldViewManager.draw();
         });
-
-        // Ugly workaround that seems to be required when supporting keyboard navigation.
-        // In main.xml, all buttons have `android:focusableInTouchMode` set to true.
-        // If it's not, then they don't get focused even when using the dpad on a
-        // Motorola Droid or plugging in a keyboard to a Pixel 3a. (Android documentation
-        // says that the UI should automatically go in and out of touch mode, but that
-        // seems to not happen). With that setting, the default touch behavior on a
-        // non-focused button is to focus it but not click it. We want a click in that case,
-        // so we have to set a touch listener and call `performClick` on a ACTION_UP event
-        // (after checking that the event was within the button bounds). This is likely
-        // fragile but seems to be working ok.
-        List<View> allButtons = Arrays.asList(
-                nextTableButton, previousTableButton, startGameButton, resumeGameButton, endGameButton,
-                aboutButton, preferencesButton, quitButton, unlimitedBallsToggle, showHighScoreButton, hideHighScoreButton);
-        for (View button : allButtons) {
-            button.setOnTouchListener((view, motionEvent) -> {
-                // Log.i(TAG, "Button motion event: " + motionEvent);
-                // Log.i(TAG, "View: " + view);
-                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                    Rect r = new Rect();
-                    view.getLocalVisibleRect(r);
-                    // Log.i(TAG, "Button rect: " + r);
-                    // Log.i(TAG, "Event location: " + motionEvent.getX() + " " + motionEvent.getY());
-                    if (r.contains((int)motionEvent.getX(), (int)motionEvent.getY())) {
-                        // Log.i(TAG, "Button click, focused: " + view.hasFocus());
-                        // This calls the button's click action, but for some reason doesn't
-                        // do the ripple animation if the button was previously focused.
-                        view.requestFocus();
-                        view.performClick();
-                        return true;
-                    }
-                }
-                return false;
-            });
-        }
-
-        // TODO: allow field configuration to specify whether tilting is allowed
-        /*
-        orientationListener = new OrientationListener(this, SensorManager.SENSOR_DELAY_GAME,
-        		new OrientationListener.Delegate() {
-        	public void receivedOrientationValues(float azimuth, float pitch, float roll) {
-            	field.receivedOrientationValues(azimuth, pitch, roll);
-        	}
-        });
-         */
 
         // Android 15 and later enforces edge-to-edge mode, but we don't want to draw over the
         // bottom navigation or any camera or other cutouts. This callback lets us adjust the size
@@ -321,6 +253,61 @@ public class BouncyActivity extends Activity {
         }
     }
 
+    /** Binds all UI views from the current layout and sets up touch workarounds. */
+    void bindViews() {
+        buttonPanel = findViewById(R.id.buttonPanel);
+        selectTableRow = findViewById(R.id.selectTableRow);
+        highScorePanel = findViewById(R.id.highScorePanel);
+        nextTableButton = findViewById(R.id.nextTableButton);
+        previousTableButton = findViewById(R.id.previousTableButton);
+        startGameButton = findViewById(R.id.startGameButton);
+        resumeGameButton = findViewById(R.id.resumeGameButton);
+        endGameButton = findViewById(R.id.endGameButton);
+        aboutButton = findViewById(R.id.aboutButton);
+        preferencesButton = findViewById(R.id.preferencesButton);
+        quitButton = findViewById(R.id.quitButton);
+        unlimitedBallsToggle = findViewById(R.id.unlimitedBallsToggle);
+        tableIndicator = findViewById(R.id.tableIndicator);
+        showHighScoreButton = findViewById(R.id.highScoreButton);
+        hideHighScoreButton = findViewById(R.id.hideHighScoreButton);
+        highScoreListLayout = findViewById(R.id.highScoreListLayout);
+        noHighScoresTextView = findViewById(R.id.noHighScoresTextView);
+        pauseButton = findViewById(R.id.pauseIcon);
+
+        topSpacerView = findViewById(R.id.topSpacerView);
+        bottomSpacerView = findViewById(R.id.bottomSpacerView);
+        leftSpacerView = findViewById(R.id.leftSpacerView);
+        rightSpacerView = findViewById(R.id.rightSpacerView);
+
+        updateScoreViewOverlayMode();
+        updateTableIndicator();
+
+        buttonPanel.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            scaleButtonPanelToFit();
+        });
+
+        // Workaround for touch-mode focus issues with keyboard/dpad navigation.
+        List<View> allButtons = Arrays.asList(
+                nextTableButton, previousTableButton, startGameButton, resumeGameButton, endGameButton,
+                aboutButton, preferencesButton, quitButton, unlimitedBallsToggle, showHighScoreButton, hideHighScoreButton);
+        for (View button : allButtons) {
+            button.setOnTouchListener((view, motionEvent) -> {
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    Rect r = new Rect();
+                    view.getLocalVisibleRect(r);
+                    if (r.contains((int)motionEvent.getX(), (int)motionEvent.getY())) {
+                        view.requestFocus();
+                        view.performClick();
+                        return true;
+                    }
+                }
+                return false;
+            });
+        }
+
+        updateUiControls();
+    }
+
     /** Scales the button panel content if it's taller than the available screen height. */
     void scaleButtonPanelToFit() {
         if (buttonPanel.getVisibility() != View.VISIBLE) return;
@@ -338,11 +325,30 @@ public class BouncyActivity extends Activity {
         }
     }
 
+    /** Locks the screen to whichever orientation it's currently in. */
+    void lockCurrentOrientation() {
+        int orientation = getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        } else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+        }
+    }
+
     @Override
     public void onConfigurationChanged(android.content.res.Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+
+        // Orientation is locked during gameplay, so rotation only happens in the menu.
+        // Recreate the activity to re-inflate the correct layout variant (portrait/landscape).
+        if (!field.getGameState().isGameInProgress()) {
+            recreate();
+            return;
+        }
+
         updateZoomForOrientation();
         updateScoreViewOverlayMode();
+        updateUiControls();
         fieldViewManager.draw();
     }
 
@@ -677,6 +683,13 @@ public class BouncyActivity extends Activity {
         } else {
             fieldViewManager.setHorizontalBias(0.5f);
         }
+
+        // Lock orientation during gameplay, unlock in menu.
+        if (gameInProgress) {
+            lockCurrentOrientation();
+        } else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
+        }
     }
 
     @Override public void onDestroy() {
@@ -914,7 +927,7 @@ public class BouncyActivity extends Activity {
 
     // Button action methods defined by android:onClick values in main.xml.
     public void doStartGame(View view) {
-        if (field.getGameState().isPaused()) {
+        if (field.getGameState().isGameInProgress() && field.getGameState().isPaused()) {
             // If there's an accessibility panel or other overlay visible, this can be called
             // twice in rapid succession. The first time hasWindowFocus is false because the
             // overlay is visible, and we want to ignore that event.
@@ -949,6 +962,10 @@ public class BouncyActivity extends Activity {
             }
             VPSoundpool.playStart();
             endGameTime = null;
+            // Ensure the game loop is running (may have been stopped during recreate).
+            field.getGameState().setPaused(false);
+            fieldDriver.start();
+            if (glFieldView != null) glFieldView.onResume();
             updateUiControls();
         }
     }
